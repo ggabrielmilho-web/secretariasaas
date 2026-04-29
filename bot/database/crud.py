@@ -2,6 +2,9 @@ import json
 import logging
 from datetime import datetime, timedelta
 from typing import Optional
+from zoneinfo import ZoneInfo
+
+_TZ_SP = ZoneInfo("America/Sao_Paulo")
 
 from sqlalchemy import select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -545,7 +548,7 @@ async def cancel_meeting(meeting_id: int) -> Optional[Meeting]:
 
 
 async def complete_past_meetings() -> int:
-    today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+    today_start = datetime.now(_TZ_SP).replace(hour=0, minute=0, second=0, microsecond=0, tzinfo=None)
     async with async_session() as session:
         result = await session.execute(
             select(Meeting).where(
@@ -646,7 +649,7 @@ async def list_reminders(user_id: int, active_only: bool = True) -> list[Reminde
 
 async def list_pending_reminders() -> list[Reminder]:
     async with async_session() as session:
-        now = datetime.now()
+        now = datetime.now(_TZ_SP).replace(tzinfo=None)
         result = await session.execute(
             select(Reminder).where(
                 and_(
